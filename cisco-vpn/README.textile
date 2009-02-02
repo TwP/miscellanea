@@ -1,0 +1,9 @@
+Provides a convenient wrapper around the Cisco vpnclient application.
+
+This script will automate the login process, put the vpnclient into background mode, and send keep-alive pings to an internal server. The latter is important for when the VPN firewall is configured to terminte connections after a certain period of inactivity.
+
+Put the script in some accessible location on your path, ~/bin works well.
+
+  vpn --help
+
+When first used, the --debug flag is very useful to see what is going on.  After the first successful connection, a ~/.vpnrc file is created. There you can specify defaults and a keep-alive host to ping.
