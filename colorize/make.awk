@@ -8,7 +8,7 @@
 #    make 2>&1 | nawk -f make.awk
 #
 # Functions:
-#    cmake () { make $* 2>&1 | nawk -f cvs.awk; }
+#    cmake () { make $* 2>&1 | nawk -f make.awk; }
 # -----------------------------------------------------------------------------
 
 BEGIN {

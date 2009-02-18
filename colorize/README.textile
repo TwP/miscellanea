@@ -1,0 +1,3 @@
+These scripts are used to colorize the output from various command line utilities. They work in conjunction with a set of bash aliases in order to filter the output from the original command and apply the colorization rules. This is helpful for spotting errors and warnings from commands that spew tremendous amounts of information to standard out.
+
+The individual scripts have documentation describing the intended use and some sample bash functions that demonstrate practical usage.
