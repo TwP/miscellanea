@@ -20,12 +20,15 @@ require 'highline'
 require 'expect'
 require 'optparse'
 require 'yaml'
+require 'rbconfig'
 
+RUBY = File.join(Config::CONFIG['bindir'],
+                 Config::CONFIG['ruby_install_name']).sub(/.*\s.*/m, '"\&"')
 
 DEFAULT_CONFIG = {
   'username' => nil,
   'daemon' => false,
-  'pid_file' => '/var/run/vpn.pid',
+  'pid_file' => '/tmp/vpn/vpn.pid',
   'vpn' => {
     'client' => '/usr/local/bin/vpnclient',
     'profile' => 'default',
@@ -59,7 +62,7 @@ class VpnConnector
   end
 
   def connect
-    cmd = "ruby -e 'STDOUT.puts $$; STDOUT.flush; exec \"#{vpn_client} connect #{vpn_profile}\"'"
+    cmd = "#{RUBY} -e 'STDOUT.puts $$; STDOUT.flush; exec \"#{vpn_client} connect #{vpn_profile}\"'"
     @vpn = IO.popen cmd, "r+"
     @pid = Integer(@vpn.readline.chomp.strip)
 
@@ -145,13 +148,10 @@ class Main
 
     case options[:action]
     when :connect
-      run_as_root args
       connect
     when :disconnect
-      run_as_root args
       disconnect
     when :reconnect
-      run_as_root args
       disconnect
       connect
     when :status
@@ -259,6 +259,7 @@ class Main
 
         Signal.trap('INT') {vpn.stop}
 
+        FileUtils.mkdir_p(File.dirname(pid_file))
         File.open(pid_file, 'w') {|fd| fd.puts $$}
         if wr
           wr.write $$
@@ -268,7 +269,7 @@ class Main
         end
         vpn.join
       ensure
-        File.delete(pid_file)
+        File.delete(pid_file) if test(?f, pid_file)
       end
     end
   end
@@ -312,7 +313,7 @@ class Main
         File::umask 0000
         STDIN.reopen '/dev/null'
         STDOUT.reopen '/dev/null', 'a'
-        STDERR.reopen STDOUT
+        STDERR.reopen '/dev/null', 'a'
 
         yield wr
         exit
@@ -320,13 +321,6 @@ class Main
       exit!
     end
     exit!
-  end
-
-  def run_as_root( args )
-    unless ENV['USER'] == 'root'
-      STDOUT.puts "sudo #{$0} #{args.join ' '}" if debug?
-      exec "sudo -p '[sudo] password for %u: ' #{$0} #{args.join ' '}"
-    end
   end
 end  # class Main
 
